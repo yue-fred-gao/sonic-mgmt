@@ -78,6 +78,9 @@
   <features>
     <acpi/>
     <apic/>
+{% if asic_type == 'vpp' %}
+    <ioapic driver='qemu'/>
+{% endif %}
   </features>
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>
@@ -99,8 +102,8 @@
     <interface type='ethernet'>
         <target dev='{{ dut_name }}-0' />
     {% if asic_type == 'vpp' %}
-        <model type='virtio-net-pci' />
-        <driver name='vhost' tx_queue_size='1024' rx_queue_size='1024'/>
+        <model type='virtio' />
+        <driver name='vhost' rx_queue_size='1024' iommu='on' ats='on'/>
     {% elif port_alias|length > 128 %}
         <model type='virtio' />
     {% else %}
@@ -111,8 +114,8 @@
     <interface type='ethernet' >
         <target dev='{{ dut_name }}-{{ i + 1 }}' />
     {% if asic_type == 'vpp' %}
-        <model type='virtio-net-pci' />
-        <driver name='vhost' tx_queue_size='1024' rx_queue_size='1024'/>
+        <model type='virtio' />
+        <driver name='vhost' rx_queue_size='1024' iommu='on' ats='on'/>
     {% elif port_alias|length > 128 %}
         <model type='virtio' />
     {% else %}
@@ -127,6 +130,11 @@
       <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
     </memballoon>
     <watchdog model='i6300esb'/>
+{% if asic_type == 'vpp' %}
+    <iommu model='intel'>
+      <driver intremap='on' caching_mode='on' iotlb='on' aw_bits='48'/>
+    </iommu>
+{% endif %}
 {% if use_uefi %}
     <tpm model="tpm-crb">
       <backend type="emulator"/>
